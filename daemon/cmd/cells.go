@@ -54,6 +54,7 @@ import (
 	ipamcell "github.com/cilium/cilium/pkg/ipam/cell"
 	ipcache "github.com/cilium/cilium/pkg/ipcache/cell"
 	ipmasq "github.com/cilium/cilium/pkg/ipmasq/cell"
+	"github.com/cilium/cilium/pkg/isis"
 	k8sClient "github.com/cilium/cilium/pkg/k8s/client"
 	"github.com/cilium/cilium/pkg/k8s/hostfirewallbypass"
 	k8sSynced "github.com/cilium/cilium/pkg/k8s/synced"
@@ -295,6 +296,11 @@ var (
 
 		// The BGP Control Plane which enables various BGP related interop.
 		bgp.Cell,
+		// The experimental IS-IS Control Plane is independent of BGP.
+		isis.Cell,
+		cell.Provide(func(loader loadertypes.Loader, lbInitWait loadbalancer.InitWaitFunc) isis.DatapathWaiter {
+			return isis.NewDatapathWaiter(loader.HostDatapathInitialized(), lbInitWait)
+		}),
 		// Provides the BGP DatapathWaiter that gates route announcements on
 		// host datapath and load-balancing state initialization.
 		//
